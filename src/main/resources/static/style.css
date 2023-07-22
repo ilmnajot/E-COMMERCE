@@ -1,0 +1,21 @@
+label, input, button {
+    display: block;
+    font-family: 'Baloo Thambi 2', cursive;
+}
+
+label, button {
+    text-transform: uppercase;
+}
+
+input, button {
+    border: 2px solid #60E858;
+    margin-bottom: 10px;
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+button {
+    background: #60E858;
+    border-radius: 30px;
+}
