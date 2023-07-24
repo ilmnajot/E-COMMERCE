@@ -51,4 +51,11 @@ public class User {
     @LastModifiedBy
     @Column(name = "updatedBy")
     private String updatedBy;
+
+    public User(String fullName, String username, String password, RoleName roleName) {
+        this.fullName = fullName;
+        this.username = username;
+        this.password = password;
+        this.roleName = roleName;
+    }
 }
