@@ -5,9 +5,12 @@ import org.springframework.stereotype.Repository;
 import uz.ilmnajot.registration.entity.User;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findUserByUsername(String username);
+
+    boolean findUserByToken(String token);
 }

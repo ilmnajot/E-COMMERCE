@@ -1,11 +1,10 @@
-package uz.ilmnajot.registration.dto;
+package uz.ilmnajot.registration.dto.auth;
 
 import lombok.Data;
 import uz.ilmnajot.registration.entity.User;
-import uz.ilmnajot.registration.enums.RoleName;
 
 @Data
-public class ManagerDto {
+public class UserDto {
 
     private Long id;
 
@@ -13,14 +12,11 @@ public class ManagerDto {
 
     private String username;
 
-    private RoleName roleName;
-
-    public static ManagerDto toDto(User user){
-        ManagerDto dto  = new ManagerDto();
+    public static UserDto toDto(User user){
+        UserDto dto = new UserDto();
         dto.setId(user.getId());
         dto.setFullName(user.getFullName());
         dto.setUsername(user.getUsername());
-        dto.setRoleName(user.getRoleName());
         return dto;
     }
 }

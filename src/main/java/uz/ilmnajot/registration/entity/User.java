@@ -2,8 +2,10 @@ package uz.ilmnajot.registration.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedBy;
@@ -12,13 +14,16 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.ilmnajot.registration.enums.RoleName;
 
 import java.sql.Timestamp;
+import java.util.UUID;
 
 @Entity(name = "users")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @EntityListeners(AuditingEntityListener.class)
 public class User {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,6 +41,15 @@ public class User {
     @Enumerated(value = EnumType.STRING)
     private RoleName roleName;
 
+    private String emailCode;
+
+    @ColumnDefault("false")
+    private boolean enabled;
+
+    private UUID token;
+
+
+
     @Column(updatable = false, name = "created_at")
     @CreationTimestamp
     private Timestamp createdAt;
@@ -52,10 +66,11 @@ public class User {
     @Column(name = "updatedBy")
     private String updatedBy;
 
-    public User(String fullName, String username, String password, RoleName roleName) {
+    public User(String fullName, String username, String password, RoleName roleName, boolean enabled) {
         this.fullName = fullName;
         this.username = username;
         this.password = password;
         this.roleName = roleName;
+        this.enabled = enabled;
     }
 }

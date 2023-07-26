@@ -1,10 +1,11 @@
 package uz.ilmnajot.registration.controller;
-
 import jakarta.validation.Valid;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uz.ilmnajot.registration.dto.*;
+import uz.ilmnajot.registration.apiResponse.ApiResponse;
+import uz.ilmnajot.registration.dto.auth.*;
+import uz.ilmnajot.registration.exception.AppException;
 import uz.ilmnajot.registration.service.JwtService;
 
 @RestController
@@ -17,9 +18,9 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public HttpEntity<UserDto> registerUser(@Valid @RequestBody UserForm form) {
-        UserDto register = jwtService.register(form);
-        return ResponseEntity.ok(register);
+    public HttpEntity<ApiResponse> registerUser(@Valid @RequestBody UserForm form) {
+        ApiResponse registered = jwtService.register(form);
+        return ResponseEntity.ok(registered);
     }
 
     @PostMapping("/login")
@@ -37,7 +38,11 @@ public class AuthController {
     public ResponseEntity<ManagerDto> registerManager(@RequestBody ManagerForm form){
         ManagerDto managerDto = jwtService.createManager(form);
         return ResponseEntity.ok(managerDto);
-
+    }
+    @PutMapping("/verifyEmail")
+    public HttpEntity<ApiResponse> verifyEmail(@RequestParam String username, @RequestParam String emailCode){
+        ApiResponse apiResponse = jwtService.verifyEmail(username, emailCode);
+        return ResponseEntity.status(apiResponse.isSuccess()?201:409).body(apiResponse);
     }
 }
 

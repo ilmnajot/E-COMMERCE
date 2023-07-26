@@ -1,4 +1,4 @@
-package uz.ilmnajot.registration.dto;
+package uz.ilmnajot.registration.dto.auth;
 
 import lombok.Data;
 import uz.ilmnajot.registration.entity.User;

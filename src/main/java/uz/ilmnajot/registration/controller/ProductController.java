@@ -8,18 +8,17 @@ import uz.ilmnajot.registration.apiResponse.ApiResponse;
 import uz.ilmnajot.registration.dto.ProductDto;
 import uz.ilmnajot.registration.dto.ProductForm;
 import uz.ilmnajot.registration.service.ProductService;
-
 import java.util.List;
 import java.util.UUID;
 
 
 @RestController
 @RequestMapping("/api/v1/products")
-public class UserController {
+public class ProductController {
 
     private final ProductService productService;
 
-    public UserController(ProductService productService) {
+    public ProductController(ProductService productService) {
         this.productService = productService;
     }
 
@@ -57,6 +56,5 @@ public class UserController {
         ProductDto productDto = productService.editProduct(id, form);
         return ResponseEntity.ok(productDto);
     }
-
 
 }

@@ -1,10 +1,13 @@
-package uz.ilmnajot.registration.dto;
+package uz.ilmnajot.registration.dto.auth;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Data;
 import uz.ilmnajot.registration.enums.RoleName;
-@Data
-public class ManagerForm {
 
+@Data
+public class AdminForm {
 
     private String fullName;
 

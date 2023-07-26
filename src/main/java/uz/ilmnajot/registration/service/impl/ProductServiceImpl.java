@@ -1,5 +1,4 @@
 package uz.ilmnajot.registration.service.impl;
-
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import uz.ilmnajot.registration.apiResponse.ApiResponse;
@@ -9,7 +8,6 @@ import uz.ilmnajot.registration.entity.Product;
 import uz.ilmnajot.registration.exception.AppException;
 import uz.ilmnajot.registration.repository.ProductRepository;
 import uz.ilmnajot.registration.service.ProductService;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +16,6 @@ import java.util.UUID;
 @Service
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
-
 
     public ProductServiceImpl(ProductRepository productRepository) {
         this.productRepository = productRepository;
@@ -33,7 +30,6 @@ public class ProductServiceImpl implements ProductService {
         }
         throw new AppException("Product not found");
     }
-
     @Transactional
     @Override
     public ProductDto registerProduct(ProductForm form) {
@@ -51,7 +47,7 @@ public class ProductServiceImpl implements ProductService {
         Product saved = productRepository.save(product);
         return ProductDto.toDto(saved);
     }
-
+    
     @Override
     public List<ProductDto> getProducts() {
         try {
@@ -85,6 +81,7 @@ public class ProductServiceImpl implements ProductService {
         if (product==null){
             throw new AppException("Product not found to edit");
         }
+
         product.setId(id);
         product.setName(form.getName());
         product.setDescription(form.getDescription());
@@ -95,5 +92,4 @@ public class ProductServiceImpl implements ProductService {
         Product saved = productRepository.save(product);
         return ProductDto.toDto(saved);
     }
-    
 }

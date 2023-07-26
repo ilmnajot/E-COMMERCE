@@ -1,19 +1,16 @@
-package uz.ilmnajot.registration.dto;
+package uz.ilmnajot.registration.dto.auth;
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-public class UserForm {
-
-    @NotNull(message = "space cannot be null")
-    private String fullName;
+@AllArgsConstructor
+public class LoginForm {
 
     @NotNull(message = "space cannot be null")
     private String username;
 
     @NotNull(message = "space cannot be null")
     private String password;
-
 }
