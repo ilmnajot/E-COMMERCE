@@ -11,7 +11,7 @@ public interface JwtService{
 
     AdminDto createAdmin(AdminForm form);
 
-    ManagerDto createManager(ManagerForm form);
+    UserDto createManager(ManagerForm form);
 
     ApiResponse verifyEmail(String username, String emailCode);
 

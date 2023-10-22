@@ -13,15 +13,9 @@ import java.util.Date;
 public class AllExceptionHandler {
 
     @ExceptionHandler(AppException.class)
-    public HttpEntity<?> handleAppException(
-            AppException appException,
-            WebRequest webRequest) {
+    public HttpEntity<?> handleAppException(AppException appException, WebRequest webRequest) {
 
-        ErrorDetails errorDetails =
-                new ErrorDetails(
-                        new Date(),
-                        appException.getMessage(),
-                        webRequest.getDescription(false));
+        ErrorDetails errorDetails = new ErrorDetails(new Date(), appException.getMessage(), webRequest.getDescription(false));
 
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }

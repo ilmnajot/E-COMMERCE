@@ -44,10 +44,11 @@ public class User {
     private String emailCode;
 
     @ColumnDefault("false")
-    private boolean enabled;
+    private boolean enabled = false;
 
-    private UUID token;
+    private String hashedCode;
 
+    private String code;
 
 
     @Column(updatable = false, name = "created_at")
@@ -73,4 +74,8 @@ public class User {
         this.roleName = roleName;
         this.enabled = enabled;
     }
+
+
+
+
 }

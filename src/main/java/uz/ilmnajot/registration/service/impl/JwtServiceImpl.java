@@ -2,13 +2,13 @@ package uz.ilmnajot.registration.service.impl;
 
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import uz.ilmnajot.registration.apiResponse.ApiResponse;
+import uz.ilmnajot.registration.database.DataLoader;
 import uz.ilmnajot.registration.dto.auth.*;
 import uz.ilmnajot.registration.entity.User;
 import uz.ilmnajot.registration.enums.RoleName;
@@ -19,7 +19,6 @@ import uz.ilmnajot.registration.service.JwtService;
 
 import java.util.Optional;
 import java.util.Random;
-import java.util.UUID;
 
 @Service
 public class JwtServiceImpl implements JwtService {
@@ -33,28 +32,58 @@ public class JwtServiceImpl implements JwtService {
 
     private final JavaMailSender javaMailSender;
 
-    @Value("${server.set-password}")
-    String setPasswordUrl;
+    private final MailService mailService;
 
-    public JwtServiceImpl(UserRepository userRepository, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, JwtProvider jwtProvider, JavaMailSender javaMailSender) {
+    private final DataLoader dataLoader;
+//
+//    @Value("${server.set-password}")
+//    String setPasswordUrl;
+    @Value("${hash.secret}")
+    String hashSecret;
+
+    @Value("${email.base.url}")
+    String url;
+
+
+    public JwtServiceImpl(
+            UserRepository userRepository,
+            AuthenticationManager authenticationManager,
+            PasswordEncoder passwordEncoder,
+            JwtProvider jwtProvider,
+            JavaMailSender javaMailSender,
+            MailService mailService,
+            DataLoader dataLoader) {
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
         this.passwordEncoder = passwordEncoder;
         this.jwtProvider = jwtProvider;
         this.javaMailSender = javaMailSender;
+        this.mailService = mailService;
+        this.dataLoader = dataLoader;
     }
 
-    public void sendMail(String username, String emailCode) {
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("no-reply@gmail.com");
-            message.setTo(username);
-            message.setSubject("verify account");
-            message.setText(emailCode);
-            javaMailSender.send(message);
-        } catch (Exception ignored) {
-        }
-    }
+//    public void sendMail(String username, String emailCode) {
+//        try {
+//            SimpleMailMessage message = new SimpleMailMessage();
+//            message.setFrom("no-reply@gmail.com");
+//            message.setTo(username);
+//            message.setSubject("verify account");
+//            message.setText(emailCode);
+//            javaMailSender.send(message);
+//        } catch (Exception ignored) {
+//        }
+//    }
+//    public void sendLinkToMail(String username, String token) {
+//        try {
+//            SimpleMailMessage message = new SimpleMailMessage();
+//            message.setFrom("no-reply@gmail.com");
+//            message.setTo(username);
+//            message.setSubject("verify account");
+//            message.setText("<a href='http://localhost:5555/api/auth/validate' " + token + username +">!</a>");
+//            javaMailSender.send(message);
+//        } catch (Exception ignored) {
+//        }
+//    }
 
     @Override
     public ApiResponse register(UserForm form) {
@@ -69,9 +98,8 @@ public class JwtServiceImpl implements JwtService {
             int nextedInt = new Random().nextInt(9999999);
             user.setEmailCode(String.valueOf(nextedInt).substring(0, 4));
             userRepository.save(user);
-            sendMail(user.getUsername(), user.getEmailCode());
+            mailService.sendMail(user.getUsername(), user.getEmailCode());
             return new ApiResponse("send code to your email", true);
-//            return UserDto.toDto(savedUser);
         }
         throw new AppException("there is already exist username " + form.getUsername());
     }
@@ -89,7 +117,7 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public AdminDto createAdmin(@NotNull AdminForm form) {
+    public AdminDto createAdmin(AdminForm form) {
         Optional<User> optionalUser = userRepository.findUserByUsername(form.getUsername());
         if (optionalUser.isEmpty()) {
             User user = new User();
@@ -103,17 +131,15 @@ public class JwtServiceImpl implements JwtService {
         throw new AppException("there is no user with the given username + " + form.getUsername());
     }
 
+
     @Override
-    public ManagerDto createManager(ManagerForm form) {
+    public UserDto createManager(ManagerForm form) {
         Optional<User> optionalUser = userRepository.findUserByUsername(form.getUsername());
         if (optionalUser.isEmpty()) {
-            User user1 = new User();
-            user1.setFullName(form.getFullName());
-            user1.setUsername(form.getUsername());
-            user1.setRoleName(form.getRoleName());
-            user1.setPassword(passwordEncoder.encode(form.getPassword()));
-            User saved = userRepository.save(user1);
-            return ManagerDto.toDto(saved);
+        String hashCode = passwordEncoder.encode(form.getUsername()  + hashSecret);
+        String link  = url + hashCode;
+        mailService.sendLinkToMail(form.getUsername(), link);
+        return addUserDB(form, RoleName.ROLE_MANAGER, hashCode);
         }
         throw new AppException("there is already exists user with the given username + " + form.getUsername());
     }
@@ -133,12 +159,12 @@ public class JwtServiceImpl implements JwtService {
         return new ApiResponse("there is no exists", false);
     }
 
-
     public LoginDto validateToken(String token) {
-        boolean userByToken = userRepository.findUserByToken(token);
-        if (userByToken) {
+        Optional<User> optionalUser = userRepository.findUserByToken(token);
+        if (optionalUser.isPresent()) {
             LoginDto loginDto = new LoginDto();
-            loginDto.setToken(token);
+            String jwtToken = jwtProvider.generateToken(optionalUser.get().getUsername());
+            loginDto.setToken(jwtToken);
             return loginDto;
         }
         // TODO: 7/25/2023 Kelgan tokenni database search qiladi agar mavjud bo'lsa return jwt
@@ -146,14 +172,26 @@ public class JwtServiceImpl implements JwtService {
     }
 
     public ApiResponse setPassword(SetPasswordDto setPasswordDto) {
-        Optional<User> optionalUser = userRepository.findUserByUsername(setPasswordDto.getUsername());
+        String email = SecurityDetails.getUserEmail().get();
+        Optional<User> optionalUser = userRepository.findUserByUsername(email);
         if (optionalUser.isEmpty()) {
-            throw new AppException("User " + setPasswordDto.getUsername() + " does not exist");
+            throw new AppException("User " + email + " does not exist");
         }
         User user = optionalUser.get();
         user.setPassword(setPasswordDto.getPassword());
         userRepository.save(user);
-        // TODO: 7/25/2023 Find user by email in setPasswordDto.getEmail() and set password to user
         return new ApiResponse("successfully created password", true);
     }
+
+
+    public UserDto addUserDB(ManagerForm form, RoleName roleName, String confirmHash) {
+        return UserDto.toDto(User.builder()
+                .fullName(form.getFullName())
+                .username(form.getUsername())
+                .roleName(roleName)
+                .enabled(false)
+                .hashedCode(confirmHash)
+                .build());
+    }
+
 }

@@ -1,4 +1,5 @@
 package uz.ilmnajot.registration.service.impl;
+
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import uz.ilmnajot.registration.apiResponse.ApiResponse;
@@ -8,6 +9,7 @@ import uz.ilmnajot.registration.entity.Product;
 import uz.ilmnajot.registration.exception.AppException;
 import uz.ilmnajot.registration.repository.ProductRepository;
 import uz.ilmnajot.registration.service.ProductService;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +32,7 @@ public class ProductServiceImpl implements ProductService {
         }
         throw new AppException("Product not found");
     }
+
     @Transactional
     @Override
     public ProductDto registerProduct(ProductForm form) {
@@ -37,17 +40,17 @@ public class ProductServiceImpl implements ProductService {
         if (existsByNameAndExistsTrue) {
             throw new AppException("Product already exists with name " + form.getName());
         }
-        Product product = new Product();
-        product.setName(form.getName());
-        product.setDescription(form.getDescription());
-        product.setQuantity(form.getQuantity());
-        product.setColor(form.getColor());
-        product.setPrice(form.getPrice());
-        product.setImages(form.getImages());
-        Product saved = productRepository.save(product);
-        return ProductDto.toDto(saved);
+        return ProductDto.toDto(productRepository.save(Product.builder()
+                .name(form.getName())
+                .description(form.getDescription())
+                .quantity(form.getQuantity())
+                .color(form.getColor())
+                .price(form.getPrice())
+                .images(form.getImages())
+                .build()
+        ));
     }
-    
+
     @Override
     public List<ProductDto> getProducts() {
         try {
@@ -67,7 +70,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ApiResponse deleteProduct(UUID id) {
         Product product = productRepository.findByIdAndExistsTrue(id);
-        if (product!=null) {
+        if (product != null) {
             product.setExists(false);
             productRepository.save(product);
             return new ApiResponse("successfully product deleted", true);
@@ -78,10 +81,9 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDto editProduct(UUID id, ProductForm form) {
         Product product = productRepository.findByIdAndExistsTrue(id);
-        if (product==null){
+        if (product == null) {
             throw new AppException("Product not found to edit");
         }
-
         product.setId(id);
         product.setName(form.getName());
         product.setDescription(form.getDescription());
@@ -92,4 +94,6 @@ public class ProductServiceImpl implements ProductService {
         Product saved = productRepository.save(product);
         return ProductDto.toDto(saved);
     }
+
+
 }
